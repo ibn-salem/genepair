@@ -2,8 +2,7 @@
 
 #' Apply a function to a pair of genomic ranges.
 #'
-#' This function returns a \code{\link[GenomicRanges]{GRanges}} object with bins
-#' of a single chromosome by given bin size.
+#' This function returns a vector with the resulting functin call for each pair..
 #'
 #' @param gp data.frame of pairs of genomic ranges. First two columns hold
 #'   indices of the range in \code{rangesGR}.
@@ -26,5 +25,6 @@
 applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
 
   # to check that paris are from same chromosome
+  chr <- seqnames(rangesGR)
 
 }
