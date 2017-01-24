@@ -1,0 +1,14 @@
+Package: genepair
+Type: Package
+Title: Functions to analyse gene pairs.
+Version: 0.0.0.9000
+Authors@R: person("Jonas", "Ibn-Salem", email = "j.ibn-salem@uni-mainz.de", role = c("aut", "cre"))
+Description: This package provides several functions to analyse pairs of genes.
+Depends:
+    R (>= 3.3.2)
+Imports:
+  GenomicRanges (>= 1.24.3),
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 5.0.1
