@@ -14,66 +14,79 @@
 #'   summary statsitic. Default is \code{\link{cor()}}.
 #' @return A Numeric vector
 #' @examples
-# rangesGR <- GRanges(
-#  rep(c("chr1", "chr2"), c(3,2)),
-#  IRanges(
-#       c(100, 200, 300, 100, 200),
-#       c(150, 250, 350, 150, 250)
-#    ))
-#
-# datamat <- rbind(
-#     c(10, 20, 30),
-#     c(15, 26, 40),
-#     c(100, 2, 0),
-#     c(10, 20, 30),
-#     c(15, 26, 40)
-#   )
-#
-# applyToCisPairs(gp, rangesGR, datamat)
-#
-#' @keywords internal
+#' rangesGR <- GRanges(
+#'  rep(c("chr1", "chr2"), c(3,2)),
+#'  IRanges(
+#'       c(100, 200, 300, 100, 200),
+#'       c(150, 250, 350, 150, 250)
+#'    ))
+#' gp <- data.frame(
+#'  g1=c(1,4,2,1,4),
+#'  g2=c(2,4,3,3,5)
+#' )
 #'
+#' datamat <- rbind(
+#'     c(10, 20, 30),
+#'     c(15, 26, 40),
+#'     c(100, 2, 0),
+#'     c(10, 20, 30),
+#'     c(15, 26, 40)
+#'   )
+#' applyToCisPairs(gp, rangesGR, datamat)
+#'
+#' @export
 applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
 
   # Algorithm
   # (1) group pairs by chromosome
   # (2) get mapping from single chr index to rangesIdx
-  #     M <- empty matrix with NAs of dim nxn
-  # (3) iterate over all chroms
+  # (3) M <- empty matrix with NAs of dim nxn
+  # (4) iterate over all chroms
   #     - select ranges on this chrom
   #     - comp corelation matrix of all pairs
   #     - Fill
+  # (5) query matrix with all pairs
 
+  n <- length(rangesGR)
   idx1 <- gp[,1]
   idx2 <- gp[,2]
+  regChr <- as.vector(GenomeInfoDb::seqnames(rangesGR))
 
   # to check that paris are from same chromosome
-  chr <- as.vector(seqnames(rangesGR))
-  if(!all(chr[idx1] == chr[idx2])){strop("Pairs of ranges are not all from the same chromosome.")}
+  if (!all(regChr[idx1] == regChr[idx2])) {
+    strop("Pairs of ranges are not all from the same chromosome.")
+  }
   # check that ranges GR is annotated with a seqinof object
 
-  chrPair <- chr[idx1]
-  # just for testing:
-  #chrPair <- c("chr1", "chr2", "chr1", "chr1", "chr2")
+  chromosomes <- unique(regChr)
 
-  chromosomes <- unique(chrPair)
+  countChr <- plyr::count(regChr)
 
-  countChr <- plyr::count(chrPair)
+  #-----------------------------------------------------------------------------
+  # (3) initialize empty matrix
+  #-----------------------------------------------------------------------------
+  m <- Matrix::Matrix(0,nrow=n, ncol=n)
 
-  chrID <- rep(NA, length(chrPair))
+  #-----------------------------------------------------------------------------
+  # (4) iteratre over all chromosomes
+  #-----------------------------------------------------------------------------
+  for (chr in chromosomes){
 
-  for(chr in countChr$x){
-    chrSub <- chr == chrPair
-    chrID[chrSub] <- seq(sum(chrSub))
+    subIdx <- which(chr == regChr)
+
+    subDat <- datamat[subIdx,]
+
+    subCor <- fun(t(subDat))
+
+    m[subIdx, subIdx] <- subCor
+
+
   }
+  #-----------------------------------------------------------------------------
+  # (5) query matrix with all pairs.
+  #-----------------------------------------------------------------------------
+  values <- m[cbind(idx1, idx2)]
 
-  chrIdxList <- lapply(chromosomes, function(chr) which(chr == chrPair))
-
-  vecList <- lapply(chromosomes, function(chr){
-
-    # get subset of matrix
-    m <- datamat[chrIdxList[[chr]],]
-
-  })
+  return(values)
 
 }
