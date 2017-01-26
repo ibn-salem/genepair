@@ -70,16 +70,29 @@ applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
   #-----------------------------------------------------------------------------
   # (4) iteratre over all chromosomes
   #-----------------------------------------------------------------------------
+  subCorList <- BiocParallel::bplapply(chromosomes, function(chr){
+
+    # to get indexes of regions on the current chrom
+    subIdx <- which(chr == regChr)
+
+    # select coresponding data
+    subDat <- datamat[subIdx,]
+
+    # apply function to subset of data
+    fun(t(subDat))
+
+  })
+
+  names(subCorList) <- chromosomes
+
+  # update Matrix with submatrixes
   for (chr in chromosomes){
 
     subIdx <- which(chr == regChr)
 
-    subDat <- datamat[subIdx,]
-
-    subCor <- fun(t(subDat))
+    subCor <- subCorList[[chr]]
 
     m[subIdx, subIdx] <- subCor
-
 
   }
   #-----------------------------------------------------------------------------
