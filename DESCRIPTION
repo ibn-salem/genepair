@@ -12,7 +12,8 @@ Depends:
 Imports:
     GenomicRanges (>= 1.24.3),
     plyr,
-    Matrix
+    Matrix,
+    BiocParallel
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
