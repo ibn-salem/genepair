@@ -34,3 +34,8 @@ test_that("applyToCisPairs runs on small exmaple", {
                               }))
 })
 
+test_that("applyToCisPairs runs fast on large exmaple dataset", {
+
+})
+
+
