@@ -14,7 +14,7 @@ Imports:
     plyr,
     Matrix,
     BiocParallel,
-    dplyr
+    data.table (>= 1.10.4)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

@@ -104,7 +104,6 @@ applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
 
 }
 
-
 #' Apply a function to pairs of close genomic regions.
 #'
 #' This function returns a vector with the resulting functin call for each input pair.
@@ -139,7 +138,6 @@ applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
 #'     c(15, 26, 40)
 #'   )
 #' applyToCisPairs(gp, rangesGR, datamat)
-#'
 #' @export
 applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
 
@@ -175,7 +173,12 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
     # compute pairwise correlations for all regions in this bin
     m <- cor(t(datamat[idxs,]))
 
-    corMat <- cbind(
+    # corMat <- cbind(
+    #   rep(idxs, n),
+    #   rep(idxs, each=n),
+    #   array(m)
+    #   )
+    corDT <- data.table::data.table(
       rep(idxs, n),
       rep(idxs, each=n),
       array(m)
@@ -185,17 +188,31 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   #-----------------------------------------------------------------------------
   # (3) combine all data.frames
   #-----------------------------------------------------------------------------
-  corDF <- data.frame(do.call("rbind", corMatList))
+  # corDF <- data.frame(do.call("rbind", corMatList))
+  corDT <- data.table::rbindlist(corMatList)
+
+  # make corDF unique
+  corDTunique <- corDT[!duplicated(corDT[,1:2]),]
 
   #-----------------------------------------------------------------------------
   # (4) Query with input pairs
   #-----------------------------------------------------------------------------
-  names(corDF) <- c("id1", "id2", "val")
+  # names(corDF) <- c("id1", "id2", "val")
+  names(corDTunique) <- c("id1", "id2", "val")
+  corDTunique <- data.table::data.table(corDTunique, key=c("id1", "id2"))
+
+  data.table::setkey(corDTunique, id1, id2)
+
+  # convert gp into data.table and set keys to id1 and id2 columns
   names(gp)[1:2] <- c("id1", "id2")
+  gpDT <- data.table::data.table(gp)
+  data.table::setkey(gpDT, id1, id2, physical=FALSE)
 
-  matches <- dplyr::semi_join(corDF, gp, by=c("id1", "id2"))
 
+  matches <- data.table::setDT(corDTunique)[gpDT, on=c("id1", "id2")]
+  # see http://stackoverflow.com/a/32124692
 
   return(matches$val)
 
 }
+#corVal <- applyToClosePairs(loopDF, ancGR, datamat, fun=cor, maxDist=10^6)
