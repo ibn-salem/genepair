@@ -2,4 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-^data-raw$
+# do not upload raw data sets to github
+data-raw/*.Rdata
