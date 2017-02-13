@@ -110,13 +110,15 @@ applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
 #'
 #'
 #' @param gp data.frame of pairs of genomic ranges. First two columns hold
-#'   indices of the range in \code{rangesGR}.
+#'   indices of the range in \code{rangesGR}. The rows has to be sorted
+#'   according to the first two columns.
 #' @param rangesGR GenomicRanges object with all ranges used in \code{gp}.
 #' @param datamat a matrix of with data values associated to each rang in
 #'   \code{rangesGR}. Assumes the ranges in rows while \code{row.names(datamat)}
 #'   are the \code{names(rangesGR)}.
 #' @param fun A function that takes two numeric vectors as imput to compute a
 #'   summary statsitic. Default is \code{\link{cor()}}.
+#' @param maxDist maximal distance of pairs in bp as numeric.
 #' @return A Numeric vector
 #' @examples
 #' rangesGR <- GRanges(
@@ -137,8 +139,9 @@ applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
 #'     c(10, 20, 30),
 #'     c(15, 26, 40)
 #'   )
-#' applyToCisPairs(gp, rangesGR, datamat)
+#' applyToClosePairs(gp, rangesGR, datamat)
 #' @export
+#' @import data.table
 applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
 
   # Algorithm
@@ -153,6 +156,7 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   # (1) group ranges in by bins
   #-----------------------------------------------------------------------------
 
+  message("INFO: Prepare Genomic bins...")
   # create GRanges object for entire genome
   genomeGR <- GenomicRanges::GRanges(GenomeInfoDb::seqinfo(rangesGR))
 
@@ -163,6 +167,8 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   #-----------------------------------------------------------------------------
   # (2) compute pairwise correlatin for all ranges in each bin
   #-----------------------------------------------------------------------------
+  message("INFO: compute correlations for each group...")
+
   corMatList <- lapply(1:length(binGR), function(i){
 
     # get regions in this bin
@@ -188,31 +194,42 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   #-----------------------------------------------------------------------------
   # (3) combine all data.frames
   #-----------------------------------------------------------------------------
+  message("INFO: Combine data.tables of pairwise correlations...")
   # corDF <- data.frame(do.call("rbind", corMatList))
   corDT <- data.table::rbindlist(corMatList)
 
   # make corDF unique
-  corDTunique <- corDT[!duplicated(corDT[,1:2]),]
+  # corDTunique <- corDT[!duplicated(corDT[,1:2]),]
+  corDTunique <- corDT
 
   #-----------------------------------------------------------------------------
   # (4) Query with input pairs
   #-----------------------------------------------------------------------------
+
+  message("INFO: Set key to corDTunique...")
   # names(corDF) <- c("id1", "id2", "val")
   names(corDTunique) <- c("id1", "id2", "val")
-  corDTunique <- data.table::data.table(corDTunique, key=c("id1", "id2"))
+  # corDTunique <- data.table::data.table(corDTunique, key=c("id1", "id2"))
+  # data.table::setkey(corDTunique, id1, id2)
+  data.table::setkeyv(corDTunique, cols=c("id1", "id2"))
 
-  data.table::setkey(corDTunique, id1, id2)
-
+  message("INFO: Set key to gpDT...")
   # convert gp into data.table and set keys to id1 and id2 columns
   names(gp)[1:2] <- c("id1", "id2")
   gpDT <- data.table::data.table(gp)
-  data.table::setkey(gpDT, id1, id2, physical=FALSE)
+  data.table::setkeyv(gpDT, cols=c("id1", "id2"))
 
+  message("INFO: Query correlation for input pairs...")
 
-  matches <- data.table::setDT(corDTunique)[gpDT, on=c("id1", "id2")]
+  #matches <- data.table::setDT(corDTunique)[gpDT, on=c("id1", "id2")]
+  matches <- corDTunique[gpDT, on=c("id1", "id2")]
+  # matches <- data.table::[.data.table (corDTunique, gpDT, on=c("id1", "id2"))
+
   # see http://stackoverflow.com/a/32124692
+  message("INFO: Finished calculations.")
 
   return(matches$val)
 
 }
 #corVal <- applyToClosePairs(loopDF, ancGR, datamat, fun=cor, maxDist=10^6)
+#corVal <- applyToClosePairs(gp, rangesGR, datamat, fun=cor, maxDist=10^6)
