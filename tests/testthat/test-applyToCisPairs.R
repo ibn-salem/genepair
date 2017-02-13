@@ -1,7 +1,7 @@
 context("applyToCisPairs")
 
 
-test_that("applyToCisPairs runs on small exmaple", {
+test_that("applyToCisPairs runs on small example", {
 
   rangesGR <- GenomicRanges::GRanges(
     rep(c("chr1", "chr2"), c(3,2)),
@@ -32,10 +32,6 @@ test_that("applyToCisPairs runs on small exmaple", {
                               function(i){
                                 cor(datamat[gp[i, 1], ], datamat[gp[i, 2], ])
                               }))
-})
-
-test_that("applyToCisPairs runs fast on large exmaple dataset", {
-
 })
 
 
