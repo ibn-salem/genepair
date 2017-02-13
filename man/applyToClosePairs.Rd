@@ -11,7 +11,8 @@ applyToClosePairs(gp, rangesGR, datamat, fun = cor, maxDist = 10^6)
 indices of the range in \code{rangesGR}. The rows has to be sorted
 according to the first two columns.}
 
-\item{rangesGR}{GenomicRanges object with all ranges used in \code{gp}.}
+\item{rangesGR}{\code{\link{GenomicRanges}} object with all ranges used in \code{gp}. It
+shoul be annoated with \code{\link{seqinfo}} and \code{\link{seqnames}}.}
 
 \item{datamat}{a matrix of with data values associated to each rang in
 \code{rangesGR}. Assumes the ranges in rows while \code{row.names(datamat)}
@@ -26,7 +27,8 @@ summary statsitic. Default is \code{\link{cor()}}.}
 A Numeric vector
 }
 \description{
-This function returns a vector with the resulting functin call for each input pair.
+This function returns a vector with the resulting functin call for each input
+pair.
 }
 \examples{
 rangesGR <- GRanges(

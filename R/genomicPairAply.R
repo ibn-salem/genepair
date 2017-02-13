@@ -104,15 +104,27 @@ applyToCisPairs <- function(gp, rangesGR, datamat, fun=cor){
 
 }
 
+#' returns indecies of columns with non-zero variance
+#'
+#' @param dat data.frame or matirx
+#' @return column indecies of columns with non-zero variance
+noZeroVar <- function(dat) {
+  out <- apply(dat, 2, function(x) length(unique(x)))
+  which(out > 1)
+}
+
+
 #' Apply a function to pairs of close genomic regions.
 #'
-#' This function returns a vector with the resulting functin call for each input pair.
+#' This function returns a vector with the resulting functin call for each input
+#' pair.
 #'
 #'
 #' @param gp data.frame of pairs of genomic ranges. First two columns hold
 #'   indices of the range in \code{rangesGR}. The rows has to be sorted
 #'   according to the first two columns.
-#' @param rangesGR GenomicRanges object with all ranges used in \code{gp}.
+#' @param rangesGR \code{\link{GenomicRanges}} object with all ranges used in \code{gp}. It
+#'   shoul be annoated with \code{\link{seqinfo}} and \code{\link{seqnames}}.
 #' @param datamat a matrix of with data values associated to each rang in
 #'   \code{rangesGR}. Assumes the ranges in rows while \code{row.names(datamat)}
 #'   are the \code{names(rangesGR)}.
@@ -152,11 +164,18 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   #   /uses inner_join() from dplyr like in
   #  http://stackoverflow.com/questions/26596305/match-two-data-frames-based-on-multiple-columns
 
+  # check input
+  if ( any(is.na(GenomeInfoDb::seqlengths(rangesGR))) ) stop("rangesGR need seqlengths.")
+
+  if ( any(order(gp[,1], gp[,2]) != 1:nrow(gp)) ) stop("gp has to be ordered by its first two columns.")
+
   #-----------------------------------------------------------------------------
   # (1) group ranges in by bins
   #-----------------------------------------------------------------------------
 
   message("INFO: Prepare Genomic bins...")
+
+  # if (all(!is.na(seqlengths(ancGR))))
   # create GRanges object for entire genome
   genomeGR <- GenomicRanges::GRanges(GenomeInfoDb::seqinfo(rangesGR))
 
@@ -171,24 +190,41 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
 
   corMatList <- lapply(1:length(binGR), function(i){
 
-    # get regions in this bin
-    idxs <- S4Vectors::subjectHits(hits)[S4Vectors::queryHits(hits) == i]
+    # #DEBUG:
+    # message("DEBUG: index i, ", i)
 
-    n = length(idxs)
+    # get regions in this bin
+    regIdx <- S4Vectors::subjectHits(hits)[S4Vectors::queryHits(hits) == i]
+
+    if (length(regIdx) == 1){
+      dat <- cbind(datamat[regIdx,])
+    }else{
+      dat <- t(datamat[regIdx,])
+    }
+
+    # get indices with non-zero variance (they casue warning and NA in cor())
+    subIdx <- noZeroVar(dat)
+
+    n = length(subIdx)
 
     # compute pairwise correlations for all regions in this bin
-    m <- cor(t(datamat[idxs,]))
+    if (n != 1){
 
-    # corMat <- cbind(
-    #   rep(idxs, n),
-    #   rep(idxs, each=n),
-    #   array(m)
-    #   )
+      m <- cor(dat[,subIdx])
+
+    }else{
+
+      m <- 1
+
+    }
+
+    # constract data.table object for all pairs
     corDT <- data.table::data.table(
-      rep(idxs, n),
-      rep(idxs, each=n),
+      rep(regIdx[subIdx], n),
+      rep(regIdx[subIdx], each=n),
       array(m)
-      )
+    )
+
   })
 
   #-----------------------------------------------------------------------------
@@ -198,35 +234,21 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   # corDF <- data.frame(do.call("rbind", corMatList))
   corDT <- data.table::rbindlist(corMatList)
 
-  # make corDF unique
-  # corDTunique <- corDT[!duplicated(corDT[,1:2]),]
-  corDTunique <- corDT
-
   #-----------------------------------------------------------------------------
   # (4) Query with input pairs
   #-----------------------------------------------------------------------------
 
-  message("INFO: Set key to corDTunique...")
   # names(corDF) <- c("id1", "id2", "val")
-  names(corDTunique) <- c("id1", "id2", "val")
-  # corDTunique <- data.table::data.table(corDTunique, key=c("id1", "id2"))
-  # data.table::setkey(corDTunique, id1, id2)
-  data.table::setkeyv(corDTunique, cols=c("id1", "id2"))
+  names(corDT) <- c("id1", "id2", "val")
+  data.table::setkeyv(corDT, cols=c("id1", "id2"))
 
-  message("INFO: Set key to gpDT...")
   # convert gp into data.table and set keys to id1 and id2 columns
   names(gp)[1:2] <- c("id1", "id2")
   gpDT <- data.table::data.table(gp)
   data.table::setkeyv(gpDT, cols=c("id1", "id2"))
 
   message("INFO: Query correlation for input pairs...")
-
-  #matches <- data.table::setDT(corDTunique)[gpDT, on=c("id1", "id2")]
-  matches <- corDTunique[gpDT, on=c("id1", "id2")]
-  # matches <- data.table::[.data.table (corDTunique, gpDT, on=c("id1", "id2"))
-
-  # see http://stackoverflow.com/a/32124692
-  message("INFO: Finished calculations.")
+  matches <- corDT[gpDT, on=c("id1", "id2"), mult="first"]
 
   return(matches$val)
 
