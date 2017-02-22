@@ -4,9 +4,9 @@ Title: Functions to Analyse Pairs of Genomic Elements like Genes.
 Version: 0.0.0.9000
 Authors@R: person("Jonas", "Ibn-Salem", email = "j.ibn-salem@uni-mainz.de", role = c("aut", "cre"))
 Description: This package provides several functions to analyse pairs of 
-    genomic elements. For exmaple the function applytoCisPairs calculates can 
-    efficiently calculate correlation of gene expression across many thoused 
-    gene pairs from the same chromosome.
+    genomic elements. For exmaple the function applytoClosePairs can calculate 
+    efficiently correlation of gene expression across many gene pairs that are
+    within a certain distance on the same chromosome.
 Depends:
     R (>= 3.3.2)
 Imports:
