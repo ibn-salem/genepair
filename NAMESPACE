@@ -2,4 +2,8 @@
 
 export(applyToCisPairs)
 export(applyToClosePairs)
+export(getCisPairs)
+export(uniquePair)
+export(uniquePairPerGene)
+export(uniquePairPerGeneBySim)
 import(data.table)
