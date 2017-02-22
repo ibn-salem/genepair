@@ -19,5 +19,5 @@ A data.frame objec with subset of rows in \code{gp} with pair on the
  same chromosome.
 }
 \description{
-get subset of gene pairs that are located on the same chromosome
+Get subset of gene pairs that are located on the same chromosome.
 }
