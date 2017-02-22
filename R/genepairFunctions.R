@@ -6,13 +6,13 @@
 #'
 
 
-#'get subset of gene pairs that are located on the same chromosome
+#' Get subset of gene pairs that are located on the same chromosome.
 #'
-#'@param gp A data.frame like object holding gene pairs
-#'@param genesGR A \code{\}link{GRanges}} object
-#'@return A data.frame objec with subset of rows in \code{gp} with pair on the
+#' @param gp A data.frame like object holding gene pairs
+#' @param genesGR A \code{\}link{GRanges}} object
+#' @return A data.frame objec with subset of rows in \code{gp} with pair on the
 #'  same chromosome.
-#'@export
+#' @export
 getCisPairs <- function(gp, genesGR){
 
   # get chromosomes of gene pairs
@@ -21,6 +21,48 @@ getCisPairs <- function(gp, genesGR){
 
   # subset of gene pairs that are located on the same chromosome
   return(gp[c1==c2,])
+}
+
+
+#' Add linear distance between gene paires or NA if on differnet chromosomes.
+#'
+#' Distance is caluclated based on start positon of genes in basepair and can be
+#' negative, if second gene has a lower start postion than the first gene in
+#' pairs.
+#'
+#' @export
+addPairDist <- function(gp, genesGR, colname="dist"){
+
+  # get chromosomes of gene pairs
+  c1 <- as.character(seqnames(genesGR[gp[,1]]))
+  c2 <- as.character(seqnames(genesGR[gp[,2]]))
+  sameChrom <- c1 == c2
+
+  # get start positon of genes
+  s1 = start(genesGR[gp[,1]])
+  s2 = start(genesGR[gp[,2]])
+  # add a new column "dist" to the data.frame
+  gp[, colname] = ifelse(sameChrom, s2-s1, NA)
+  return(gp)
+}
+
+
+#' Add same starnd information.
+#'
+#' @export
+addSameStrand <- function(gp, genesGR, colname="sameStrand"){
+
+  # check if both genes have strand information
+  s1 = as.character(strand(genesGR[gp[,1]]))
+  s2 = as.character(strand(genesGR[gp[,2]]))
+  hasStrandInfo = s1 != "*" & s2 != "*"
+
+  #check if they are equal
+  sameStrand = s1==s2
+
+  gp[, colname] = as.vector(ifelse(hasStrandInfo, sameStrand, NA))
+
+  return(gp)
 }
 
 
@@ -61,6 +103,7 @@ uniquePairPerGene <- function(gp){
 
 #' Creates an ID for each gene pair by concatenating both gene names.
 #'
+#' @export
 getPairID <- function(gp) paste( gp[,1], gp[,2], sep="_" )
 
 
@@ -74,25 +117,160 @@ getPairID <- function(gp) paste( gp[,1], gp[,2], sep="_" )
 #' @export
 uniquePairPerGeneBySim <- function(gp, similarity){
 
-  # get maximal weight matching of the graph G induced by the paris of genes
-  # with similarity as weight.
-  # This command call the function form inside the python script
-  matching = python.call( "getMaxWeightMatchingAsDict", gp[,1], gp[,2], similarity)
+  # (1) sort by similarity while keeping track of the original order
 
-  # convert the matching to a data frame of gene pairs
-  uniqPairs <- data.frame(names(matching), matching, stringsAsFactors=FALSE)
+  orgOrder <- 1:nrow(gp)
+  sortedOrder <- order(similarity)
+  sortedGP <- gp[sortedOrder,]
 
-  # for all unique pairs get indices in the input set of pairs
-  orgIDs = match(getPairID(uniqPairs), getPairID(gp))
+  # (2) filter with "seen" set of geens
+  dupMat <- t(duplicated(t(as.matrix(sortedGP[,1:2])), MARGIN=0))
 
-  # add annotation columns from original data.frame
-  uniqPairs = cbind(uniqPairs, gp[orgIDs,3:ncol(gp)])
+  uniq <- apply(dupMat, 1, function(x) !any(x))
 
-  # set colom names to those of the input data.frame and delete column names
-  names(uniqPairs) <- names(gp)
-  row.names(uniqPairs) = NULL
+  # debug print
+  # cbind(sortedGP, dupMat, uniq)
+
+  # (3) reorder to original order
+  uniqPairs <- gp[uniq[sortedOrder],]
+
 
   return(uniqPairs)
 }
+
+
+#' Test if gene pairs are contained in another set of gene pairs.
+#'
+#' @return a logical vector
+#' @export
+containsGenePairs <- function(genePairs, negPairs, gPidx=FALSE, nPidx=FALSE, gr=NULL){
+
+  # take either the index directly or get the index from the GRange object
+  if (gPidx){
+    gP1 = genePairs[,1]
+    gP2 = genePairs[,2]
+  }else{
+    gP1 <- match(genePairs[,1], names(gr))
+    gP2 <- match(genePairs[,2], names(gr))
+  }
+  if (nPidx){
+    nP1 = negPairs[,1]
+    nP2 = negPairs[,2]
+  }else{
+    nP1 <- match(negPairs[,1], names(gr))
+    nP2 <- match(negPairs[,2], names(gr))
+  }
+
+  # sort pairs according to index
+  gPmin <- apply(cbind(gP1, gP2), 1, min)
+  gPmax <- apply(cbind(gP1, gP2), 1, max)
+
+  nPmin <- apply(cbind(nP1, nP2), 1, min)
+  nPmax <- apply(cbind(nP1, nP2), 1, max)
+
+  # combine id of first and second to get unique ID per pair
+  gPid <- paste(gPmin, gPmax, sep="|")
+  nPid <- paste(nPmin, nPmax, sep="|")
+
+  inNeg <- gPid %in% nPid
+}
+
+
+#' Test if gene pairs are non-overlapping. That is that two paird genes do not
+#' overlap each other. in the genome (on the same strand).
+#'
+#'@export
+nonOverlappingGenePairs <- function(gp, genesGR, useIDs=FALSE){
+
+  genesHitDF <- as.data.frame(findOverlaps(genesGR, genesGR))
+  ovl <- containsGenePairs(gp, negPairs=genesHitDF, gPidx=useIDs, nPidx=TRUE, gr=genesGR)
+  return( ! ovl )
+
+}
+
+
+#' Add annotatino column of each gene to gene pairs
+#'
+#'@export
+addGeneAnnotation <- function(gp, genesGR, colname){
+
+  gp[, paste0(colname, "_g1")] <- mcols(genesGR[gp[,1]])[, colname]
+  gp[, paste0(colname, "_g2")] <- mcols(genesGR[gp[,2]])[, colname]
+
+  return(gp)
+
+}
+
+
+#' Make GRange object of range between start position of paired genes.
+#'
+#' It assumes that genes in pair are on the same chromosome.
+#' @export
+getPairAsGR <- function(gp, genesGR){
+
+  # get chromosomes of gene pairs
+  c1 <- seqnames(genesGR[gp[,1]])
+  c2 <- seqnames(genesGR[gp[,2]])
+  if(!all(c1 == c2)) stop("Gene pairs are not on the same chromosome.")
+
+  chrom = c1
+  s1 = start(genesGR[gp[,1]])
+  s2 = start(genesGR[gp[,2]])
+
+  up = apply(cbind(s1, s2), 1, min)
+  down = apply(cbind(s1, s2), 1, max)
+
+  outGR = GRanges(chrom, IRanges(up, down), seqinfo=seqinfo(genesGR))
+
+  # add all columns of gp as annotation columns
+  mcols(outGR) = gp
+
+  return(outGR)
+}
+
+
+#' Add column to indicate that two query region overlap the same subset of
+#' subject regions. If both query regions do not overlap any subject, FALSE is
+#' returned.
+#'
+addSubTADmode <- function(gp, tadGR, genesGR, colName="subTAD"){
+
+  # compute overlap of all genes with TADs
+  hitsDF <- as.data.frame(findOverlaps(genesGR, tadGR, type="within"))
+
+  # get indices of genes in tssGR
+  if ( !is.numeric(gp[,1]) ){
+    idx1 <- match(gp[,1], names(genesGR))
+    idx2 <- match(gp[,2], names(genesGR))
+  }else{
+    idx1 <- gp[,1]
+    idx2 <- gp[,2]
+  }
+
+  # get for each gene the set of TADs that overlap
+  set1 <- lapply(idx1, function(i) hitsDF[hitsDF[,1]==i, 2])
+  set2 <- lapply(idx2, function(i) hitsDF[hitsDF[,1]==i, 2])
+
+  # test if sets are equal for each gene in pair
+  commonSubset <- mapply(setequal, set1, set2)
+
+  # compute overlap with any common TAD
+  genePairGR <- getPairAsGR(gp, genesGR)
+  commonTAD <- countOverlaps(genePairGR, tadGR, type="within") >= 1
+
+  # get combinations
+  subTADmode <- NA
+  subTADmode[!commonTAD & commonSubset] <- "no TAD"
+  subTADmode[!commonTAD & !commonSubset] <- "diff TAD"
+  subTADmode[commonTAD & !commonSubset] <- "diff sub TAD"
+  subTADmode[commonTAD & commonSubset] <- "same sub TAD"
+  subTADmode <- factor(subTADmode, levels=c("no TAD", "diff TAD", "diff sub TAD", "same sub TAD"))
+
+  # add column to gene pairs and return
+  gp[, colName] <- subTADmode
+  return(gp)
+}
+
+# TODO: continue with interChromPairMatrix() in functions.genePairs.R
 
 
