@@ -12,6 +12,7 @@
 #' @param genesGR A \code{\}link{GRanges}} object
 #' @return A data.frame objec with subset of rows in \code{gp} with pair on the
 #'  same chromosome.
+#' @import GenomicRanges
 #' @export
 getCisPairs <- function(gp, genesGR){
 
@@ -30,6 +31,7 @@ getCisPairs <- function(gp, genesGR){
 #' negative, if second gene has a lower start postion than the first gene in
 #' pairs.
 #'
+#' @import GenomicRanges
 #' @export
 addPairDist <- function(gp, genesGR, colname="dist"){
 
@@ -49,6 +51,7 @@ addPairDist <- function(gp, genesGR, colname="dist"){
 
 #' Add same starnd information.
 #'
+#' @import GenomicRanges
 #' @export
 addSameStrand <- function(gp, genesGR, colname="sameStrand"){
 
@@ -204,7 +207,8 @@ containsGenePairs <- function(gp, negPairs, gPidx=FALSE, nPidx=FALSE, gr=NULL){
 #' Test if gene pairs are non-overlapping. That is that two paird genes do not
 #' overlap each other. in the genome (on the same strand).
 #'
-#'@export
+#' @import GenomicRanges
+#' @export
 nonOverlappingGenePairs <- function(gp, genesGR, useIDs=FALSE){
 
   genesHitDF <- as.data.frame(findOverlaps(genesGR, genesGR))
@@ -230,6 +234,8 @@ addGeneAnnotation <- function(gp, genesGR, colname){
 #' Make GRange object of range between start position of paired genes.
 #'
 #' It assumes that genes in pair are on the same chromosome.
+#'
+#' @import GenomicRanges
 #' @export
 getPairAsGR <- function(gp, genesGR){
 
@@ -258,6 +264,8 @@ getPairAsGR <- function(gp, genesGR){
 #' subject regions. If both query regions do not overlap any subject, FALSE is
 #' returned.
 #'
+#' @import GenomicRanges
+#' @export
 addSubTADmode <- function(gp, tadGR, genesGR, colName="subTAD"){
 
   # compute overlap of all genes with TADs
@@ -299,6 +307,8 @@ addSubTADmode <- function(gp, tadGR, genesGR, colName="subTAD"){
 
 #' Inter-chromosomal gene pairs counts matrix
 #'
+#' @import GenomicRanges
+#' @export
 interChromPairMatrix <- function(gp, genesGR, symmetric=FALSE){
 
   # get vector of all unique chromosome names
