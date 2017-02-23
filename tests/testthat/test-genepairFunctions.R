@@ -1,5 +1,22 @@
+require(GenomicRanges)
+
 context("genepairFunctions")
 
+
+# some general test instances
+testGR <- GRanges(
+  c("chr1", "chr1", "chr2"),
+  IRanges(
+    c(10, 50,  10),
+    c(20, 100, 20)
+  ),
+  strand=c("+", "-", "+")
+)
+
+testGP <- data.frame(
+  g1=c(1, 2, 3, 1),
+  g2=c(1, 1, 1, 2)
+)
 
 test_that("uniquePairPerGeneBySim runs correclty", {
 
@@ -21,6 +38,15 @@ test_that("uniquePairPerGeneBySim runs correclty", {
     length(unique(c(uniqPairs[,1], uniqPairs[,2])))
     )
 
+})
+
+
+test_that("getCisPairs works on example", {
+
+  cisGP <- getCisPairs(testGP, testGR)
+
+  expect_equal(nrow(cisGP), 3)
+  expect_eqaul(ncol(cisGP), ncol(testGP))
 })
 
 
