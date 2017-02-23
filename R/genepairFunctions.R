@@ -107,6 +107,18 @@ uniquePairPerGene <- function(gp){
 getPairID <- function(gp) paste( gp[,1], gp[,2], sep="_" )
 
 
+#' Returns a unique gene ID for each pair that is independent of pair
+#' order (e.g. sorted)
+#' @export
+getPairIDsorted <- function(gP){
+  mapply(function(g1, g2)
+    paste(sort(c(g1), g2), collapse="_"),
+    as.character(gP[,1]),
+    as.character(gP[,2])
+  )
+}
+
+
 #' Get only one pair per unique gene by choosing the gene pair with highest
 #' sequence similarity first.
 #'
@@ -139,20 +151,33 @@ uniquePairPerGeneBySim <- function(gp, similarity){
 }
 
 
+
+#' Returns the percentage of gene pairs that are contained in another set of
+#' gene pairs.
+#'
+#' @export
+percentIncluded <- function(gPa, gPb){
+  a <- getPairIDsorted(gPa)
+  b <- getPairIDsorted(gPb)
+  return( 100 * sum(a %in% b) / length(a))
+}
+
+
 #' Test if gene pairs are contained in another set of gene pairs.
 #'
 #' @return a logical vector
 #' @export
-containsGenePairs <- function(genePairs, negPairs, gPidx=FALSE, nPidx=FALSE, gr=NULL){
+containsGenePairs <- function(gp, negPairs, gPidx=FALSE, nPidx=FALSE, gr=NULL){
 
   # take either the index directly or get the index from the GRange object
   if (gPidx){
-    gP1 = genePairs[,1]
-    gP2 = genePairs[,2]
+    g1 = gp[,1]
+    g2 = gp[,2]
   }else{
-    gP1 <- match(genePairs[,1], names(gr))
-    gP2 <- match(genePairs[,2], names(gr))
+    g1<- match(gp[,1], names(gr))
+    g2 <- match(gp[,2], names(gr))
   }
+
   if (nPidx){
     nP1 = negPairs[,1]
     nP2 = negPairs[,2]
@@ -162,8 +187,8 @@ containsGenePairs <- function(genePairs, negPairs, gPidx=FALSE, nPidx=FALSE, gr=
   }
 
   # sort pairs according to index
-  gPmin <- apply(cbind(gP1, gP2), 1, min)
-  gPmax <- apply(cbind(gP1, gP2), 1, max)
+  gPmin <- apply(cbind(g1, g2), 1, min)
+  gPmax <- apply(cbind(g1, g2), 1, max)
 
   nPmin <- apply(cbind(nP1, nP2), 1, min)
   nPmax <- apply(cbind(nP1, nP2), 1, max)
@@ -271,6 +296,104 @@ addSubTADmode <- function(gp, tadGR, genesGR, colName="subTAD"){
   return(gp)
 }
 
-# TODO: continue with interChromPairMatrix() in functions.genePairs.R
 
+#' Inter-chromosomal gene pairs counts matrix
+#'
+interChromPairMatrix <- function(gp, genesGR, symmetric=FALSE){
+
+  # get vector of all unique chromosome names
+  chroms = seqnames(seqinfo(genesGR))
+
+  # initialize matrix with zero counts
+  n = length(chroms)
+  mat = matrix(rep(0, n*n), n, dimnames=list(chroms, chroms))
+
+  # get chromsome names of gene pairs
+  c1 = seqnames(genesGR[gp[,1]])
+  c2 = seqnames(genesGR[gp[,2]])
+
+  # count pairwise occurrences
+  counts = count(data.frame(c1, c2, stringsAsFactors=FALSE))
+
+  # iterate over all found pairs and increase counter
+  for (i in 1:nrow(counts)){
+    mat[counts[i,1], counts[i,2]] = mat[counts[i,1], counts[i,2]] + counts[i,3]
+
+    # if option symmetric is FALSE, count pair as cA-cB and cB-cA
+    if (!symmetric){
+      mat[counts[i,2], counts[i,1]] =  mat[counts[i,2], counts[i,1]] + counts[i,3]
+    }
+  }
+
+  # make single letter chromosome names
+  rownames(mat) = gsub("chr", "", rownames(mat))
+  colnames(mat) = gsub("chr", "", colnames(mat))
+
+  return(mat)
+}
+
+
+#' Adds the expression values for both genes
+#'
+#' @param expDF data.frame that can be accesd by rows using the indecies or
+#'   names in the first two columns of \code{gp}.
+#' @export
+addPairExp <- function(gp, expDF, expCol, colname="exp"){
+
+  g1exp <- expDF[gp[,1], expCol]
+  g2exp <- expDF[gp[,2], expCol]
+
+  gp[,paste0("g1_", colname)] <- g1exp
+  gp[,paste0("g2_", colname)] <- g2exp
+
+  return(gp)
+}
+
+
+
+#' Returns the Pearson correlation coefficient for expression of two input
+#' genes.
+#'
+#' If more than one gene pair is provied in \code{gp} a pairwise matirx of
+#' correlation coeficients is returned.
+#'
+#'
+getCor <- function(gp, expDF){
+
+  # correct intput to matrix (in case of only two element vector)
+  gp = matrix(gp, ncol=2)
+
+  # get correlation values of all cells/conditions
+  # this will make a vector of NA's if the gene is not contained in the expression data set
+  # furthermore, cbind(c(.)) guarantees that cor() will deal with column-vectors
+  x = t(as.vector(expDF[gp[,1],]))
+  y = t(as.vector(expDF[gp[,2],]))
+
+  # return pearson correlation coefficient
+  cor(x, y, method="pearson")
+
+}
+
+
+#' Adds Pearson correlation coefficient for all gene pairs
+#'
+#' @seealso \code{\link{applyToCisPair}}s, \code{\link{applyToCisPairs}}
+#' @export
+addCor <- function(gp, expDF, colName="expCor"){
+
+  pairsAsChars = sapply(gp[,1:2], as.character)
+
+  gp[,colName] = apply(pairsAsChars, 1, getCor, expDF=expDF)
+
+  return(gp)
+}
+
+#' Checks that none of the genes in pairs is NA.
+#'
+#' @return a logical vector that has TRUE for each gene pair that has no NA and
+#'   FALSE otherwise.
+#' @export
+pairNotNA <- function(gp){
+  return( !is.na(gp[,1]) & !is.na(gp[,2]) )
+}
 
