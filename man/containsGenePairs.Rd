@@ -4,8 +4,7 @@
 \alias{containsGenePairs}
 \title{Test if gene pairs are contained in another set of gene pairs.}
 \usage{
-containsGenePairs(genePairs, negPairs, gPidx = FALSE, nPidx = FALSE,
-  gr = NULL)
+containsGenePairs(gp, negPairs, gPidx = FALSE, nPidx = FALSE, gr = NULL)
 }
 \value{
 a logical vector
