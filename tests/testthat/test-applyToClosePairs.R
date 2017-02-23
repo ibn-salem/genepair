@@ -35,6 +35,11 @@ test_that("applyToClosePairs runs on small example", {
   expect_equal(corVal[1], cor(datamat[1,], datamat[2,]))
   realCor <- cor(t(datamat))[as.matrix(gp[,1:2])]
   expect_equal(corVal, realCor)
+  expect_equal(
+    corVal,
+    cor(t(datamat))[as.matrix(gp[,1:2])]
+  )
+
 })
 
 test_that("applyToClosePairs runs on large exmaple dataset", {
