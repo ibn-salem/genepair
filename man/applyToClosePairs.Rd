@@ -50,4 +50,5 @@ datamat <- rbind(
     c(15, 26, 40)
   )
 applyToClosePairs(gp, rangesGR, datamat)
+
 }

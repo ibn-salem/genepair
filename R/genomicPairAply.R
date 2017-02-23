@@ -152,8 +152,9 @@ noZeroVar <- function(dat) {
 #'     c(15, 26, 40)
 #'   )
 #' applyToClosePairs(gp, rangesGR, datamat)
-#' @export
+#'
 #' @import data.table
+#' @export
 applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
 
   # Algorithm
@@ -183,6 +184,7 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   binGR <- unlist(GenomicRanges::slidingWindows(genomeGR, 2*maxDist, maxDist))
 
   hits <- GenomicRanges::findOverlaps(binGR, rangesGR)
+
   #-----------------------------------------------------------------------------
   # (2) compute pairwise correlatin for all ranges in each bin
   #-----------------------------------------------------------------------------
@@ -248,6 +250,23 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   data.table::setkeyv(gpDT, cols=c("id1", "id2"))
 
   message("INFO: Query correlation for input pairs...")
+
+  # matches <- corDT[gpDT, on=c("id1", "id2"), mult="first"]
+  # matches <- data.table:::"[.data.table"(
+  #     x=data.table::as.data.table(corDT),
+  #     i=data.table::as.data.table(gpDT),
+  #     on=c("id1", "id2"),
+  #     mult="first"
+  #   )
+
+  # matches <- unique(
+  #     data.table:::merge.data.table(
+  #       gpDT,
+  #       corDT,
+  #       all.x=TRUE
+  #     )
+  #   )
+
   matches <- corDT[gpDT, on=c("id1", "id2"), mult="first"]
 
   return(matches$val)
