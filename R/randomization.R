@@ -103,13 +103,37 @@ weightsByFactorFreq <- function(obs, population){
   idxPop <- match(as.vector(population), freqPopDF$x)
   weight <- freqObsDF[idxObs, "freq"] / freqPopDF[idxPop, "freq"]
 
-  # remove NA's, e,g, number of enhancers not observed in paralogs but in set of all genes. Set their probability to zero
+  # remove NA's, e,g, number of enhancers not observed in paralogs but in set of
+  # all genes. Set their probability to zero
   weight[is.na(weight)] <- 0
 
   # normalize weights to 1
   propability <- weight / sum(weight)
 
   return(propability)
+}
+
+
+#' Sample pairs from the input gene pairs according to given sampling weights.
+#'
+#' @param gp a data.frame with gene pairs. Holds names or indices of ranges in
+#'   an associated GRangs object in the first two columns.
+#' @param weights numeric vector of same length as rows in \code{gp} with
+#'   sampling weights.
+#' @param n the number of pairs to sample.
+#' @return a data.frame object with sampled gene pairs.
+#'
+#' @export
+samplePairsByWeight <- function(gp, weights, n){
+
+  # sample pairs from input pairs according to weights
+  pairIDX <- sample.int(nrow(gp), n, prob=weights, replace=TRUE)
+
+  # construct gene pair DF from sampled pairs
+  rp <- gp[pairIDX,]
+
+  return(rP)
+
 }
 
 
