@@ -14,7 +14,7 @@
 #'  same chromosome.
 #' @import GenomicRanges
 #' @export
-getCisPairs <- function(gp, genesGR){
+filterForCisPairs <- function(gp, genesGR){
 
   # get chromosomes of gene pairs
   c1 = as.character(seqnames(genesGR[gp[,1]]))

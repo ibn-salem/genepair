@@ -41,9 +41,9 @@ test_that("uniquePairPerGeneBySim runs correclty", {
 })
 
 
-test_that("getCisPairs works on example", {
+test_that("filterForCisPairs works on example", {
 
-  cisGP <- getCisPairs(testGP, testGR)
+  cisGP <- filterForCisPairs(testGP, testGR)
 
   expect_equal(nrow(cisGP), 3)
   expect_eqaul(ncol(cisGP), ncol(testGP))
