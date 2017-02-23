@@ -6,10 +6,46 @@
 #'
 
 
+#' Get all possible gene pairs within a given distance range as data.frame
+#'
+#' @param genesGR A \code{\link{GRanges}} object.
+#' @param maxDist single numeric value for maximal allowed distance between
+#'   start position.
+#' @param minDist single numeric value for minimal allowed distance between
+#'   start postions.
+#' @return A data.frame with
+#' @export
+getAllCisPairs <- function(genesGR, maxDist=10^6, minDist=0){
+
+  # calculate overlap all possible gene pairs within maxDist bp
+  windowGR <- resize(genesGR, 2*maxDist+1, fix="center", ignore.strand=TRUE)
+  hits = findOverlaps(genesGR, windowGR, ignore.strand=TRUE)
+
+  # convert hits objec to data.frame
+  gp = as.data.frame(hits)
+  names(gp) <- c("g1", "g2")
+
+  # remove pairs with same gene
+  gp <- gp[gp[,1] != gp[,2], ]
+
+  # remove A-B, B-A duplicates:
+  gp <- uniquePair(gp)
+
+  # add distance
+  gp <- addPairDist(gp, genesGR)
+
+  # remove pars with distance smaller than minDist
+  gp <- gp[abs(gp$dist) >= minDist,]
+
+  return(gp)
+
+}
+
+
 #' Get subset of gene pairs that are located on the same chromosome.
 #'
-#' @param gp A data.frame like object holding gene pairs
-#' @param genesGR A \code{\}link{GRanges}} object
+#' @param gp A data.frame like object holding gene pairs.
+#' @param genesGR A \code{\link{GRanges}} object.
 #' @return A data.frame objec with subset of rows in \code{gp} with pair on the
 #'  same chromosome.
 #' @import GenomicRanges

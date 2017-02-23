@@ -2,17 +2,14 @@
 % Please edit documentation in R/genepairFunctions.R
 \name{filterForCisPairs}
 \alias{filterForCisPairs}
-\title{This is a collection of functions that work on pairs of genes. Thse gene
-pairs consists usually of a data.frame that hold indices of genes in an
-associate GRanges object (or strings correponding to names in a GRanges
-object)}
+\title{Get subset of gene pairs that are located on the same chromosome.}
 \usage{
 filterForCisPairs(gp, genesGR)
 }
 \arguments{
-\item{gp}{A data.frame like object holding gene pairs}
+\item{gp}{A data.frame like object holding gene pairs.}
 
-\item{genesGR}{A \code{\}link{GRanges}} object}
+\item{genesGR}{A \code{\link{GRanges}} object.}
 }
 \value{
 A data.frame objec with subset of rows in \code{gp} with pair on the
