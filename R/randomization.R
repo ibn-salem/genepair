@@ -32,7 +32,7 @@ getRandomPairs <- function(genesGR, n){
 
 
 
-#' Compute sampling weights.
+#' Compute sampling weights for continues values by binning.
 #'
 #' Compute sampling weights to sample from a population with osberved
 #' probabilities by binning.
@@ -44,9 +44,10 @@ getRandomPairs <- function(genesGR, n){
 #' @param breaks breaks used for sampling resolution (see \code{breaks} argument
 #'   in \code{\link[graphics]{hist}} function).
 #'
-#' @return numeric vector with sampling weights to sample from \code{samp} with
+#' @return numeric vector with sampling weights to sample from \code{population} with
 #'   probabilities observed in \code{obs}.
 #'
+#' @seealso \link{weightsByFactorFreq}
 #' @export
 weightsByBin <- function(obs, population, breaks=50){
 
@@ -72,6 +73,43 @@ weightsByBin <- function(obs, population, breaks=50){
   weightNormed <- weight / sum(weight)
 
   return(weightNormed)
+}
+
+
+
+#' Compute sampling weights for descret values.
+#'
+#' Computes weights for sampling from a population according to the frequencies
+#' of a variable (factor) observed in an observed set.
+#'
+#' @parm obs vector with values (e.g. factor) as observed set.
+#' @parm population vector with values (e.g. factor) in the population.
+#'
+#' @return numeric vector with sampling weights to sample from \code{population}
+#'   with probabilities observed in \code{obs}.
+#'
+#' @seealso \link{weightsByBin}
+#' @export
+weightsByFactorFreq <- function(obs, population){
+
+  # annotate all pairs with sameStrand information
+  freqObsDF <- count(as.vector(obs))
+  freqPopDF <- count(as.vector(population))
+
+
+  # take ratio of frequencies in opserved set and weight for randomly sampling
+  # from population set
+  idxObs <- match(as.vector(population), freqObsDF$x)
+  idxPop <- match(as.vector(population), freqPopDF$x)
+  weight <- freqObsDF[idxObs, "freq"] / freqPopDF[idxPop, "freq"]
+
+  # remove NA's, e,g, number of enhancers not observed in paralogs but in set of all genes. Set their probability to zero
+  weight[is.na(weight)] <- 0
+
+  # normalize weights to 1
+  propability <- weight / sum(weight)
+
+  return(propability)
 }
 
 

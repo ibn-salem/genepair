@@ -2,7 +2,7 @@
 % Please edit documentation in R/randomization.R
 \name{weightsByBin}
 \alias{weightsByBin}
-\title{Compute sampling weights.}
+\title{Compute sampling weights for continues values by binning.}
 \usage{
 weightsByBin(obs, population, breaks = 50)
 }
@@ -17,10 +17,13 @@ wants to sample (e.g distances of all gene pairs)}
 in \code{\link[graphics]{hist}} function).}
 }
 \value{
-numeric vector with sampling weights to sample from \code{samp} with
+numeric vector with sampling weights to sample from \code{population} with
   probabilities observed in \code{obs}.
 }
 \description{
 Compute sampling weights to sample from a population with osberved
 probabilities by binning.
+}
+\seealso{
+\link{weightsByFactorFreq}
 }
