@@ -5,7 +5,7 @@
 #' Sample randomly pairs from set of genes with equal probabilities
 #' @param genesGR a \code{\link[GenomicRanges]{GRanges}} with genes.
 #' @param n number of pairs to sample.
-#' @return A \code{\link{data.frame} with indexes of ranges in \code{genesGR}
+#' @return A \code{\link{data.frame}} with indexes of ranges in \code{genesGR}
 #' in the frist two columns.
 #' @export
 getRandomPairs <- function(genesGR, n){
@@ -82,8 +82,8 @@ weightsByBin <- function(obs, population, breaks=50){
 #' Computes weights for sampling from a population according to the frequencies
 #' of a variable (factor) observed in an observed set.
 #'
-#' @parm obs vector with values (e.g. factor) as observed set.
-#' @parm population vector with values (e.g. factor) in the population.
+#' @param obs vector with values (e.g. factor) as observed set.
+#' @param population vector with values (e.g. factor) in the population.
 #'
 #' @return numeric vector with sampling weights to sample from \code{population}
 #'   with probabilities observed in \code{obs}.

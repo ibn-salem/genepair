@@ -6,6 +6,11 @@
 \usage{
 weightsByFactorFreq(obs, population)
 }
+\arguments{
+\item{obs}{vector with values (e.g. factor) as observed set.}
+
+\item{population}{vector with values (e.g. factor) in the population.}
+}
 \value{
 numeric vector with sampling weights to sample from \code{population}
   with probabilities observed in \code{obs}.

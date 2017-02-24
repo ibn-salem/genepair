@@ -11,6 +11,10 @@ getRandomPairs(genesGR, n)
 
 \item{n}{number of pairs to sample.}
 }
+\value{
+A \code{\link{data.frame}} with indexes of ranges in \code{genesGR}
+in the frist two columns.
+}
 \description{
 Sample randomly pairs from set of genes with equal probabilities
 }
