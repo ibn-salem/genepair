@@ -153,7 +153,7 @@ noZeroVar <- function(dat) {
 #'   )
 #' applyToClosePairs(gp, rangesGR, datamat)
 #'
-#' @import data.table
+#' @rawNamespace import(data.table, except="shift")
 #' @export
 applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
 

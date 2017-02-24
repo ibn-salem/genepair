@@ -4,11 +4,18 @@
 \alias{containsGenePairs}
 \title{Test if gene pairs are contained in another set of gene pairs.}
 \usage{
-containsGenePairs(gp, negPairs, gPidx = FALSE, nPidx = FALSE, gr = NULL)
+containsGenePairs(gp, other)
+}
+\arguments{
+\item{gp}{a data.frame with gene pairs.}
+
+\item{other}{another data.frame with gene pairs.}
 }
 \value{
-a logical vector
+a logical vector for each pair in \code{gp} indicating whether it is
+  contained in \code{other} or not.
 }
 \description{
-Test if gene pairs are contained in another set of gene pairs.
+Compaires gene pair by combintion of IDs by using the
+\code{\link{getPairIDsorted}} function.
 }
