@@ -18,6 +18,31 @@ testGP <- data.frame(
   g2=c(1, 1, 1, 2)
 )
 
+test_that("getPairIDsorted() retunrs correct IDs on testGP dataset.", {
+
+  ids <- getPairIDsorted(testGP)
+  expect_equal(ids, c("1_1", "1_2", "1_3", "1_2"))
+
+})
+
+test_that("getPairIDsorted() retunrs same id for permuted order on random
+          example with indexes and letters.", {
+
+  randGP <- data.frame(
+    g1=sample.int(100, 10^4, replace=TRUE),
+    g2=sample.int(100, 10^4, replace=TRUE)
+  )
+
+  lettersGP <- data.frame(
+    g1=sample(letters, 10^3, replace=TRUE),
+    g2=sample(letters, 10^3, replace=TRUE)
+  )
+
+  expect_equal(getPairIDsorted(randGP), getPairIDsorted(randGP[,2:1]))
+  expect_equal(getPairIDsorted(lettersGP), getPairIDsorted(lettersGP[,2:1]))
+
+})
+
 test_that("uniquePairPerGeneBySim runs correclty", {
 
   gp <- data.frame(
