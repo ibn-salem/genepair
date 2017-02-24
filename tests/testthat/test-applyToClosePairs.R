@@ -44,6 +44,8 @@ test_that("applyToClosePairs runs on small example", {
 
 test_that("applyToClosePairs runs on large exmaple dataset", {
 
+  skip("Skip for time.")
+
   corVal <- applyToClosePairs(loopDF, ancGR, datamat, fun=cor, maxDist=10^6)
 
   expect_equal(length(corVal), nrow(loopDF))
