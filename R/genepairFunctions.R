@@ -110,7 +110,7 @@ addSameStrand <- function(gp, genesGR, colname="sameStrand"){
 uniquePair <- function(gp){
 
   # get string of sorted IDs as unique pair ID
-  pairID = apply(apply(gp[,1:2], 1, sort), 2, paste, collapse="_")
+  pairID = getPairIDsorted(gp)
 
   gp[!duplicated(pairID),]
 }
@@ -149,12 +149,27 @@ getPairID <- function(gp) paste( gp[,1], gp[,2], sep="_" )
 #' Returns a unique gene ID for each pair that is independent of pair
 #' order (e.g. sorted)
 #' @export
-getPairIDsorted <- function(gP){
-  mapply(function(g1, g2)
-    paste(sort(c(g1), g2), collapse="_"),
-    as.character(gP[,1]),
-    as.character(gP[,2])
-  )
+getPairIDsorted <- function(gp){
+
+  if (typeof(gp[,1]) == "character"){
+
+    id <- mapply(
+        function(g1, g2) paste(sort(c(g1), g2), collapse="_"),
+        gp[,1],
+        gp[,2]
+      )
+
+  }else{
+    id <- mapply(
+      function(g1, g2) {
+        pair <- as.character(sort(c(g1, g2)))
+        paste(pair, collapse="_")
+      },
+      gp[,1],
+      gp[,2]
+    )
+  }
+  return(id)
 }
 
 

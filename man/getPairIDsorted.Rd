@@ -5,7 +5,7 @@
 \title{Returns a unique gene ID for each pair that is independent of pair
 order (e.g. sorted)}
 \usage{
-getPairIDsorted(gP)
+getPairIDsorted(gp)
 }
 \description{
 Returns a unique gene ID for each pair that is independent of pair
