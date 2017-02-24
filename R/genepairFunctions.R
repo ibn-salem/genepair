@@ -11,8 +11,10 @@
 getAllCisPairs <- function(genesGR, maxDist=10^6, minDist=0){
 
   # calculate overlap all possible gene pairs within maxDist bp
-  windowGR <- resize(genesGR, 2*maxDist+1, fix="center", ignore.strand=TRUE)
-  hits = findOverlaps(genesGR, windowGR, ignore.strand=TRUE)
+  posGR <- resize(genesGR, width=1, fix="start")
+  windowGR <- resize(posGR, 2*maxDist+1, fix="center")
+
+  hits = findOverlaps(posGR, windowGR, ignore.strand=TRUE)
 
   # convert hits objec to data.frame
   gp = as.data.frame(hits)
@@ -27,7 +29,7 @@ getAllCisPairs <- function(genesGR, maxDist=10^6, minDist=0){
   # add distance
   gp <- addPairDist(gp, genesGR)
 
-  # remove pars with distance smaller than minDist
+  # remove pars with distance smaller than minDist or larger than maxDist
   gp <- gp[abs(gp$dist) >= minDist,]
 
   return(gp)
@@ -62,16 +64,17 @@ filterForCisPairs <- function(gp, genesGR){
 #'
 #' @import GenomicRanges
 #' @export
-addPairDist <- function(gp, genesGR, colname="dist"){
+addPairDist <- function(gp, genesGR, colname="dist", ignore.strand=FALSE){
 
   # get chromosomes of gene pairs
   c1 <- as.character(seqnames(genesGR[gp[,1]]))
   c2 <- as.character(seqnames(genesGR[gp[,2]]))
   sameChrom <- c1 == c2
 
-  # get start positon of genes
-  s1 = start(genesGR[gp[,1]])
-  s2 = start(genesGR[gp[,2]])
+  # get coordinate of start positon of genes
+  s1 = start(resize(genesGR[gp[,1]], 1, ignore.strand=ignore.strand))
+  s2 = start(resize(genesGR[gp[,2]], 1, ignore.strand=ignore.strand))
+
   # add a new column "dist" to the data.frame
   gp[, colname] = ifelse(sameChrom, s2-s1, NA)
   return(gp)
