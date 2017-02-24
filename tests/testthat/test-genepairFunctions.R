@@ -35,7 +35,8 @@ test_that("getPairIDsorted() retunrs same id for permuted order on random
 
   lettersGP <- data.frame(
     g1=sample(letters, 10^3, replace=TRUE),
-    g2=sample(letters, 10^3, replace=TRUE)
+    g2=sample(letters, 10^3, replace=TRUE),
+    stringsAsFactors = FALSE
   )
 
   expect_equal(getPairIDsorted(randGP), getPairIDsorted(randGP[,2:1]))

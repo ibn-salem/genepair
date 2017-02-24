@@ -151,24 +151,17 @@ getPairID <- function(gp) paste( gp[,1], gp[,2], sep="_" )
 #' @export
 getPairIDsorted <- function(gp){
 
-  if (typeof(gp[,1]) == "character"){
+  firstSmaler <- gp[,1] <= gp[,2]
 
-    id <- mapply(
-        function(g1, g2) paste(sort(c(g1), g2), collapse="_"),
-        gp[,1],
-        gp[,2]
-      )
+  first <- gp[cbind(1:nrow(gp), ifelse(firstSmaler, 1, 2))]
+  second <- gp[cbind(1:nrow(gp), ifelse(firstSmaler, 2, 1))]
 
-  }else{
-    id <- mapply(
-      function(g1, g2) {
-        pair <- as.character(sort(c(g1, g2)))
-        paste(pair, collapse="_")
-      },
-      gp[,1],
-      gp[,2]
-    )
-  }
+  id <- paste(
+    first,
+    second,
+    sep="_"
+  )
+
   return(id)
 }
 
