@@ -1,12 +1,11 @@
-require(GenomicRanges)
 
 context("genepairFunctions")
 
 
 # some general test instances
-testGR <- GRanges(
+testGR <- GenomicRanges::GRanges(
   c("chr1", "chr1", "chr2"),
-  IRanges(
+  IRanges::IRanges(
     c(10, 50,  10),
     c(20, 100, 20)
   ),
@@ -41,6 +40,24 @@ test_that("getPairIDsorted() retunrs same id for permuted order on random
 
   expect_equal(getPairIDsorted(randGP), getPairIDsorted(randGP[,2:1]))
   expect_equal(getPairIDsorted(lettersGP), getPairIDsorted(lettersGP[,2:1]))
+
+})
+
+
+test_that("containsGenePairs works on custom example", {
+
+  A <- data.frame(
+    g1=c(2, 1, 3),
+    g2=c(1, 2, 3)
+  )
+
+  B <- data.frame(
+    g1=c(1, 3),
+    g2=c(2, 4)
+  )
+
+  expect_equal(containsGenePairs(A, B), c(TRUE, TRUE, FALSE))
+  expect_equal(containsGenePairs(B, A), c(TRUE, FALSE))
 
 })
 

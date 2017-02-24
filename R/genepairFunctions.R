@@ -212,39 +212,22 @@ percentIncluded <- function(gPa, gPb){
 
 #' Test if gene pairs are contained in another set of gene pairs.
 #'
-#' @return a logical vector
+#' Compaires gene pair by combintion of IDs by using the
+#' \code{\link{getPairIDsorted}} function.
+#'
+#' @param gp a data.frame with gene pairs.
+#' @param other another data.frame with gene pairs.
+#' @return a logical vector for each pair in \code{gp} indicating whether it is
+#'   contained in \code{other} or not.
 #' @export
-containsGenePairs <- function(gp, negPairs, gPidx=FALSE, nPidx=FALSE, gr=NULL){
+containsGenePairs <- function(gp, other){
 
-  # take either the index directly or get the index from the GRange object
-  if (gPidx){
-    g1 = gp[,1]
-    g2 = gp[,2]
-  }else{
-    g1<- match(gp[,1], names(gr))
-    g2 <- match(gp[,2], names(gr))
-  }
+  # get unique ID for pairs in gp and other
 
-  if (nPidx){
-    nP1 = negPairs[,1]
-    nP2 = negPairs[,2]
-  }else{
-    nP1 <- match(negPairs[,1], names(gr))
-    nP2 <- match(negPairs[,2], names(gr))
-  }
+  gpID <- getPairIDsorted(gp)
+  otherID <- getPairIDsorted(other)
 
-  # sort pairs according to index
-  gPmin <- apply(cbind(g1, g2), 1, min)
-  gPmax <- apply(cbind(g1, g2), 1, max)
-
-  nPmin <- apply(cbind(nP1, nP2), 1, min)
-  nPmax <- apply(cbind(nP1, nP2), 1, max)
-
-  # combine id of first and second to get unique ID per pair
-  gPid <- paste(gPmin, gPmax, sep="|")
-  nPid <- paste(nPmin, nPmax, sep="|")
-
-  inNeg <- gPid %in% nPid
+  inOther <- gpID %in% otherID
 }
 
 
