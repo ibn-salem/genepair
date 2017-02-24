@@ -2,10 +2,7 @@
 % Please edit documentation in R/genepairFunctions.R
 \name{getAllCisPairs}
 \alias{getAllCisPairs}
-\title{This is a collection of functions that work on pairs of genes. Thse gene
-pairs consists usually of a data.frame that hold indices of genes in an
-associate GRanges object (or strings correponding to names in a GRanges
-object)}
+\title{Get all possible gene pairs within a given distance range as data.frame}
 \usage{
 getAllCisPairs(genesGR, maxDist = 10^6, minDist = 0)
 }
