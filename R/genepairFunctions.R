@@ -26,6 +26,18 @@ getAllCisPairs <- function(genesGR, maxDist=10^6, minDist=0){
   # remove A-B, B-A duplicates:
   gp <- uniquePair(gp)
 
+  # sort columns according to index in genesGR
+  firstSmaller <- gp[,1] <= gp[,2]
+
+  first <- gp[cbind(1:nrow, ifelse(firstSmaller, 1, 2))]
+  second <- gp[cbind(1:nrow, ifelse(firstSmaller, 2, 1))]
+
+  gp[,1] <- first
+  gp[,2] <- second
+
+  # sort rows according to index in genesGR
+  gp <- gp[order(gp[,1], gp[,2]), ]
+
   # add distance
   gp <- addPairDist(gp, genesGR)
 
