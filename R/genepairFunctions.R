@@ -8,29 +8,34 @@
 #'   start postions.
 #' @return A data.frame with
 #' @export
+#' @author Jonas Ibn-Salem and Dimitris Polychronopoulos
 getAllCisPairs <- function(genesGR, maxDist=10^6, minDist=0){
 
   # calculate overlap all possible gene pairs within maxDist bp
+  # posGR <- resize(genesGR, width=1, fix="start")
+  # windowGR <- resize(posGR, 2*maxDist+1, fix="center")
+  #
+  # hits = findOverlaps(posGR, windowGR, ignore.strand=TRUE)
+  #
   posGR <- resize(genesGR, width=1, fix="start")
-  windowGR <- resize(posGR, 2*maxDist+1, fix="center")
-
-  hits = findOverlaps(posGR, windowGR, ignore.strand=TRUE)
+  hits = findOverlaps(posGR,
+                      maxgap=maxDist,
+                      drop.redundant=TRUE,
+                      drop.self=TRUE,
+                      ignore.strand=TRUE)
 
   # convert hits objec to data.frame
   gp = as.data.frame(hits)
   names(gp) <- c("g1", "g2")
 
-  # remove pairs with same gene
-  gp <- gp[gp[,1] != gp[,2], ]
-
-  # remove A-B, B-A duplicates:
-  gp <- uniquePair(gp)
+  # if no gene pairs left, return empty data.frame
+  if (nrow(gp) == 0) return(gp)
 
   # sort columns according to index in genesGR
   firstSmaller <- gp[,1] <= gp[,2]
 
-  first <- gp[cbind(1:nrow, ifelse(firstSmaller, 1, 2))]
-  second <- gp[cbind(1:nrow, ifelse(firstSmaller, 2, 1))]
+  first <- gp[cbind(1:nrow(gp), ifelse(firstSmaller, 1, 2))]
+  second <- gp[cbind(1:nrow(gp), ifelse(firstSmaller, 2, 1))]
 
   gp[,1] <- first
   gp[,2] <- second
@@ -116,6 +121,8 @@ addSameStrand <- function(gp, genesGR, colname="sameStrand"){
 #' Remove duplicated entries of gene pairs of the form A-B and B-A.
 #' @export
 uniquePair <- function(gp){
+
+  if(nrow(gp) == 0) return(gp)
 
   # get string of sorted IDs as unique pair ID
   pairID = getPairIDsorted(gp)

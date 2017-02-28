@@ -4,7 +4,7 @@
 \alias{addPairDist}
 \title{Add linear distance between gene paires or NA if on differnet chromosomes.}
 \usage{
-addPairDist(gp, genesGR, colname = "dist")
+addPairDist(gp, genesGR, colname = "dist", ignore.strand = FALSE)
 }
 \description{
 Distance is caluclated based on start positon of genes in basepair and can be

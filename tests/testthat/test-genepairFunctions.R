@@ -17,6 +17,18 @@ testGP <- data.frame(
   g2=c(1, 1, 1, 2)
 )
 
+
+test_that("getAllCisPiars() works on example", {
+  dp <- getAllCisPairs(testGR, maxDist=100)
+
+  cp <- getAllCisPairs(testGR, maxDist=10)
+
+  expect_equal(dp[,1], 1)
+  expect_equal(dp[,2], 2)
+  expect_equal(nrow(cp), 0)
+
+})
+
 test_that("getPairIDsorted() retunrs correct IDs on testGP dataset.", {
 
   ids <- getPairIDsorted(testGP)

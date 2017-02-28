@@ -21,3 +21,6 @@ A data.frame with
 \description{
 Get all possible gene pairs within a given distance range as data.frame
 }
+\author{
+Jonas Ibn-Salem and Dimitris Polychronopoulos
+}
