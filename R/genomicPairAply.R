@@ -168,7 +168,7 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
   # check input
   if ( any(is.na(GenomeInfoDb::seqlengths(rangesGR))) ) stop("rangesGR need seqlengths.")
 
-  if ( any(order(gp[,1], gp[,2]) != 1:nrow(gp)) ) stop("gp has to be ordered by its first two columns.")
+  if ( any(order(gp[[1]], gp[[1]]) != 1:nrow(gp)) ) stop("gp has to be ordered by its first two columns.")
 
   #-----------------------------------------------------------------------------
   # (1) group ranges in by bins
@@ -198,10 +198,10 @@ applyToClosePairs <- function(gp, rangesGR, datamat, fun=cor, maxDist=10^6){
     # get regions in this bin
     regIdx <- S4Vectors::subjectHits(hits)[S4Vectors::queryHits(hits) == i]
 
-    if (length(regIdx) == 1){
-      dat <- cbind(datamat[regIdx,])
+    if (length(regIdx) == 1) {
+      dat <- cbind(datamat[regIdx, ])
     }else{
-      dat <- t(datamat[regIdx,])
+      dat <- t(datamat[regIdx, ])
     }
 
     # get indices with non-zero variance (they casue warning and NA in cor())
