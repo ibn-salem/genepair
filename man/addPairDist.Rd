@@ -6,6 +6,12 @@
 \usage{
 addPairDist(gp, genesGR, colname = "dist", ignore.strand = FALSE)
 }
+\arguments{
+\item{gp}{data.frame like object with gene pairs. Assumes indexes or names of
+ranges in 'genesGR' in the first two columns.}
+
+\item{genesGR}{A \code{\link{GRanges}} object.}
+}
 \description{
 Distance is caluclated based on start positon of genes in basepair and can be
 negative, if second gene has a lower start postion than the first gene in

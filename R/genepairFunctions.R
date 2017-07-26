@@ -69,7 +69,7 @@ filterForCisPairs <- function(gp, genesGR){
   c2 = as.character(seqnames(genesGR[gp[,2]]))
 
   # subset of gene pairs that are located on the same chromosome
-  return(gp[c1==c2,])
+  return(gp[c1 == c2,])
 }
 
 
@@ -81,6 +81,9 @@ filterForCisPairs <- function(gp, genesGR){
 #'
 #' @import GenomicRanges
 #' @export
+#' @param gp data.frame like object with gene pairs. Assumes indexes or names of
+#'   ranges in 'genesGR' in the first two columns.
+#' @param genesGR A \code{\link{GRanges}} object.
 addPairDist <- function(gp, genesGR, colname="dist", ignore.strand=FALSE){
 
   # get chromosomes of gene pairs
@@ -89,11 +92,11 @@ addPairDist <- function(gp, genesGR, colname="dist", ignore.strand=FALSE){
   sameChrom <- c1 == c2
 
   # get coordinate of start positon of genes
-  s1 = start(resize(genesGR[gp[,1]], 1, ignore.strand=ignore.strand))
-  s2 = start(resize(genesGR[gp[,2]], 1, ignore.strand=ignore.strand))
+  s1 = start(resize(genesGR[gp[,1]], 1, ignore.strand = ignore.strand))
+  s2 = start(resize(genesGR[gp[,2]], 1, ignore.strand = ignore.strand))
 
   # add a new column "dist" to the data.frame
-  gp[, colname] = ifelse(sameChrom, s2-s1, NA)
+  gp[, colname] = ifelse(sameChrom, s2 - s1, NA)
   return(gp)
 }
 
