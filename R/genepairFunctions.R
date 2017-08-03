@@ -286,6 +286,7 @@ addGeneAnnotation <- function(gp, genesGR, colname){
 #'   paired ranges.
 #'
 #' @import GenomicRanges
+#' @seealso \code{\link{getPairsAsGRL}}
 #' @export
 getPairAsGR <- function(gp, genesGR){
 
@@ -308,6 +309,49 @@ getPairAsGR <- function(gp, genesGR){
 
   return(outGR)
 }
+
+#' Make GRangesList object of range between start position of paired genes.
+#'
+#' Does NOT assume that genes in pair are on the same chromosome.
+
+#' @param gp A data.frame like object holding gene pairs.
+#' @param genesGR A \code{\link{GRanges}} object.
+#' @return A \code{\link{GRangesList}} object with the range of start positions of
+#'   paired ranges. GRanges between different chromosomes are empty.
+#'
+#' @import GenomicRanges
+#' @seealso \code{\link{getPairsAsGRL}}
+#' @export
+getPairAsGRL <- function(gp, genesGR){
+
+  # get chromosomes and starts of gene pairs
+  c1 <- seqnames(genesGR[gp[,1]])
+  c2 <- seqnames(genesGR[gp[,2]])
+
+  s1 = start(genesGR[gp[,1]])
+  s2 = start(genesGR[gp[,2]])
+
+  # assign start / end coordinates depending on gene order
+  up = apply(cbind(s1, s2), 1, min)
+  down = apply(cbind(s1, s2), 1, max)
+
+  pairGRL <- GRangesList(
+    mapply(function(g1_chr, g1_start, g2_chr, g2_start)
+    {
+      # when on same chr combine
+      if(g1_chr == g2_chr){
+        return(GRanges(seqnames=c(g1_chr),
+                       ranges=IRanges(start=g1_start, end=g2_start),
+                       seqinfo=seqinfo(genesGR)))
+      } else {
+        return(GRanges())
+      }
+    },
+    as.character(c1), up, as.character(c2), down)
+  )
+  return(pairGRL)
+}
+
 
 
 #' Add column to indicate that two query region overlap the same subset of
