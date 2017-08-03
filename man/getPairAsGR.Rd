@@ -6,6 +6,15 @@
 \usage{
 getPairAsGR(gp, genesGR)
 }
+\arguments{
+\item{gp}{A data.frame like object holding gene pairs.}
+
+\item{genesGR}{A \code{\link{GRanges}} object.}
+}
+\value{
+A \code{\link{GRanges}} object with the range of start positions of
+  paired ranges.
+}
 \description{
 It assumes that genes in pair are on the same chromosome.
 }
