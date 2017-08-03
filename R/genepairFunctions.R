@@ -279,6 +279,11 @@ addGeneAnnotation <- function(gp, genesGR, colname){
 #' Make GRange object of range between start position of paired genes.
 #'
 #' It assumes that genes in pair are on the same chromosome.
+
+#' @param gp A data.frame like object holding gene pairs.
+#' @param genesGR A \code{\link{GRanges}} object.
+#' @return A \code{\link{GRanges}} object with the range of start positions of
+#'   paired ranges.
 #'
 #' @import GenomicRanges
 #' @export
