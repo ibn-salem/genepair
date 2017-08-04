@@ -105,3 +105,15 @@ test_that("filterForCisPairs works on example", {
 })
 
 
+test_that("getPairAsGRL runs correctly on test case", {
+
+  pairGRL <- getPairAsGRL(testGP, testGR)
+
+  expect_equal(length(pairGRL), nrow(testGP))
+
+  start1 <- start(testGR[testGP[2, 1]])
+  start2 <- start(testGR[testGP[2, 2]])
+  val <- ifelse(start1 < start2, start1, start2)
+  expect_equal(start(pairGRL[[2]]), val)
+})
+
