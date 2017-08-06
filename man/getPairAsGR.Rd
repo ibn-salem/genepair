@@ -18,3 +18,6 @@ A \code{\link{GRanges}} object with the range of start positions of
 \description{
 It assumes that genes in pair are on the same chromosome.
 }
+\seealso{
+\code{\link{getPairsAsGRL}}
+}
