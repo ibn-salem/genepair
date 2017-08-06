@@ -302,7 +302,7 @@ getPairAsGR <- function(gp, genesGR){
   up = apply(cbind(s1, s2), 1, min)
   down = apply(cbind(s1, s2), 1, max)
 
-  outGR = GRanges(chrom, IRanges(up, down), seqinfo=seqinfo(genesGR))
+  outGR = GRanges(chrom, IRanges::IRanges(up, down), seqinfo=seqinfo(genesGR))
 
   # add all columns of gp as annotation columns
   mcols(outGR) = gp
@@ -340,14 +340,12 @@ getPairAsGRL <- function(gp, genesGR){
     {
       # when on same chr combine
       if(g1_chr == g2_chr){
-        return(GRanges(seqnames=c(g1_chr),
-                       ranges=IRanges(start=g1_start, end=g2_start),
-                       seqinfo=seqinfo(genesGR)))
+        return(GRanges(g1_chr, IRanges::IRanges(g1_start, g2_start), seqinfo = seqinfo(genesGR)))
       } else {
         return(GRanges())
       }
     },
-    as.character(c1), up, as.character(c2), down)
+    as.vector(c1), up, as.vector(c2), down)
   )
   return(pairGRL)
 }
